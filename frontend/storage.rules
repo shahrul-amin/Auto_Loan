@@ -1,0 +1,61 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isValidImageSize() {
+      return request.resource.size < 5 * 1024 * 1024; // 5MB
+    }
+    
+    function isValidDocumentSize() {
+      return request.resource.size < 10 * 1024 * 1024; // 10MB
+    }
+    
+    function isValidImageType() {
+      return request.resource.contentType.matches('image/.*');
+    }
+    
+    function isValidDocumentType() {
+      return request.resource.contentType.matches('image/.*') ||
+             request.resource.contentType.matches('application/pdf');
+    }
+    
+    // Profile pictures
+    match /users/{icNumber}/profile/{fileName} {
+      // Anyone can read (public profile pictures)
+      allow read: if true;
+      
+      // Only owner can upload/update their profile picture
+      allow write: if isAuthenticated() &&
+                      isValidImageSize() &&
+                      isValidImageType();
+      
+      // Only owner can delete
+      allow delete: if isAuthenticated();
+    }
+    
+    // Loan application documents
+    match /users/{icNumber}/loan_applications/{applicationId}/{fileName} {
+      // Only owner can read their documents
+      allow read: if isAuthenticated();
+      
+      // Only owner can upload documents
+      allow write: if isAuthenticated() &&
+                      isValidDocumentSize() &&
+                      isValidDocumentType();
+      
+      // Only owner can delete
+      allow delete: if isAuthenticated();
+    }
+    
+    // Deny all other access
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

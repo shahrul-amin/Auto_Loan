@@ -1,0 +1,427 @@
+<!-- htmlhint-disable -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loan Application Review - {{ application_id }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1976D2 0%, #0D47A1 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .ml-result {
+            background: #F9FAFB;
+            padding: 20px;
+            border-radius: 6px;
+            margin-bottom: 30px;
+        }
+        
+        .ml-result h2 {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+        
+        .ml-result p {
+            color: #6B7280;
+            font-size: 14px;
+        }
+        
+        .application-details {
+            background: #F9FAFB;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        
+        .application-details h3 {
+            color: #1F2937;
+            font-size: 18px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #E5E7EB;
+            padding-bottom: 10px;
+        }
+        
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+        
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .detail-label {
+            font-size: 12px;
+            color: #6B7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+        
+        .detail-value {
+            font-size: 16px;
+            color: #1F2937;
+            font-weight: 600;
+        }
+        
+        .form-section {
+            margin-bottom: 30px;
+        }
+        
+        .form-section h3 {
+            color: #1F2937;
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+        
+        .form-group label .required {
+            color: #EF4444;
+        }
+        
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #E5E7EB;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #1976D2;
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .radio-group {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .radio-option {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            border: 2px solid #E5E7EB;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            flex: 1;
+        }
+        
+        .radio-option:hover {
+            border-color: #1976D2;
+            background: #F0F9FF;
+        }
+        
+        .radio-option input[type="radio"] {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+        
+        .radio-option.approve {
+            border-color: #10B981;
+        }
+        
+        .radio-option.reject {
+            border-color: #EF4444;
+        }
+        
+        .radio-option input[type="radio"]:checked + label {
+            font-weight: 600;
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #1976D2 0%, #0D47A1 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(25, 118, 210, 0.3);
+        }
+        
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .alert.error {
+            background: #FEE2E2;
+            color: #991B1B;
+            border: 1px solid #FCA5A5;
+        }
+        
+        .alert.success {
+            background: #D1FAE5;
+            color: #065F46;
+            border: 1px solid #6EE7B7;
+        }
+        
+        @media (max-width: 640px) {
+            .detail-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .radio-group {
+                flex-direction: column;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Loan Application Review</h1>
+            <p>Application ID: {{ application_id }}</p>
+        </div>
+        
+        <div class="content">
+            <div id="alert" class="alert"></div>
+            
+            <div class="ml-result" style="border-left: 4px solid {{ '#10B981' if ml_approved else '#EF4444' }};">
+                <h2 style="color: {{ '#10B981' if ml_approved else '#EF4444' }};">ML Prediction: {{ 'APPROVED' if ml_approved else 'REJECTED' }}</h2>
+                <p><strong>Confidence:</strong> {{ '%.1f'|format(ml_confidence * 100) }}%</p>
+                {% if rejection_reason %}
+                <p style="margin-top: 10px;"><strong>ML Recommendation:</strong></p>
+                <p style="white-space: pre-wrap; margin-top: 5px;">{{ rejection_reason }}</p>
+                {% endif %}
+            </div>
+            
+            <div class="application-details">
+                <h3>Application Details</h3>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">Applicant IC</span>
+                        <span class="detail-value">{{ ic_number }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Loan Type</span>
+                        <span class="detail-value">{{ loan_type }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Requested Amount</span>
+                        <span class="detail-value">RM {{ '{:,.2f}'.format(requested_amount) }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Tenure</span>
+                        <span class="detail-value">{{ tenure }} months</span>
+                    </div>
+                    <div class="detail-item" style="grid-column: 1 / -1;">
+                        <span class="detail-label">Purpose of Loan</span>
+                        <span class="detail-value">{{ purpose_of_loan }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <form id="reviewForm" method="POST" action="/api/loan-approval/submit">
+                <input type="hidden" name="token" value="{{ token }}">
+                
+                <div class="form-section">
+                    <h3>Officer Decision</h3>
+                    
+                    <div class="form-group">
+                        <label>Decision <span class="required">*</span></label>
+                        <div class="radio-group">
+                            <label class="radio-option approve">
+                                <input type="radio" name="decision" value="approve" required>
+                                <span>Approve Application</span>
+                            </label>
+                            <label class="radio-option reject">
+                                <input type="radio" name="decision" value="reject" required>
+                                <span>Reject Application</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group" id="interestRateGroup">
+                        <label for="interestRate">Interest Rate (%) <span class="required">*</span></label>
+                        <input type="number" id="interestRate" name="interestRate" step="0.01" min="2" max="15" placeholder="e.g., 4.25">
+                    </div>
+                    
+                    <div class="form-group" id="approvedAmountGroup">
+                        <label for="approvedAmount">Approved Amount (RM) <span class="required">*</span></label>
+                        <input type="number" id="approvedAmount" name="approvedAmount" step="0.01" min="1000" placeholder="e.g., {{ '{:.2f}'.format(requested_amount) }}">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="officerRemarks">Officer Remarks <span class="required">*</span></label>
+                        <textarea id="officerRemarks" name="officerRemarks" placeholder="Enter your comments or reasons for the decision..." required></textarea>
+                    </div>
+                </div>
+                
+                <button type="submit" class="submit-btn">Submit Decision</button>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        const form = document.getElementById('reviewForm');
+        const decisionRadios = document.querySelectorAll('input[name="decision"]');
+        const interestRateGroup = document.getElementById('interestRateGroup');
+        const approvedAmountGroup = document.getElementById('approvedAmountGroup');
+        const interestRateInput = document.getElementById('interestRate');
+        const approvedAmountInput = document.getElementById('approvedAmount');
+        const alertDiv = document.getElementById('alert');
+        
+        // Toggle required fields based on decision
+        decisionRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.value === 'approve') {
+                    interestRateInput.required = true;
+                    approvedAmountInput.required = true;
+                    interestRateGroup.style.display = 'block';
+                    approvedAmountGroup.style.display = 'block';
+                } else {
+                    interestRateInput.required = false;
+                    approvedAmountInput.required = false;
+                    interestRateGroup.style.display = 'none';
+                    approvedAmountGroup.style.display = 'none';
+                }
+            });
+        });
+        
+        // Initially hide approval fields
+        interestRateGroup.style.display = 'none';
+        approvedAmountGroup.style.display = 'none';
+        
+        // Form submission
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData);
+            
+            // Validate
+            if (data.decision === 'approve') {
+                if (!data.interestRate || !data.approvedAmount) {
+                    showAlert('error', 'Please fill in Interest Rate and Approved Amount for approval');
+                    return;
+                }
+            }
+            
+            try {
+                const response = await fetch('/api/loan-approval/submit', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showAlert('success', 'Decision submitted successfully!');
+                    setTimeout(() => {
+                        window.close();
+                        // Fallback if window.close() doesn't work (for some browsers)
+                        if (!window.closed) {
+                            window.location.href = 'about:blank';
+                        }
+                    }, 2000);
+                } else {
+                    showAlert('error', result.message || 'Failed to submit decision');
+                }
+            } catch (error) {
+                showAlert('error', 'Network error. Please try again.');
+            }
+        });
+        
+        function showAlert(type, message) {
+            alertDiv.className = `alert ${type}`;
+            alertDiv.textContent = message;
+            alertDiv.style.display = 'block';
+            
+            if (type === 'success') {
+                setTimeout(() => {
+                    alertDiv.style.display = 'none';
+                }, 5000);
+            }
+        }
+    </script>
+</body>
+</html>

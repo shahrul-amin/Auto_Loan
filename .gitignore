@@ -1,0 +1,106 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.buildlog/
+.history
+.svn/
+migrate_working_dir/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+build/
+
+# iOS specific ignores
+**/ios/Pods/
+**/ios/.symlinks/
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Flutter.podspec
+**/ios/ServiceDefinitions.json
+**/ios/Runner/GeneratedPluginRegistrant.*
+
+# Android specific ignores
+**/android/.gradle/
+**/android/captures/
+**/android/gradlew
+**/android/gradlew.bat
+**/android/local.properties
+**/android/key.properties
+**/android/.gradle
+**/android/gradle/wrapper/*.jar
+
+# Web specific ignores
+**/web/favicon.png
+**/web/icons/
+
+# Symbolication related
+app.*.symbols
+
+# Obfuscation related
+app.*.map.json
+
+# Android Studio will place build artifacts here
+/android/app/debug
+/android/app/profile
+/android/app/release
+**/android/app/build/
+**/android/build/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Firebase credentials
+firebase-credentials.json
+firebase_options.dart
+google-services.json
+GoogleService-Info.plist
+
+# Configuration files with sensitive data
+config.py
+local_settings.py
+secrets.json
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+
+# Local database files
+*.db
+*.sqlite
+*.sqlite3
+
+# IDE and OS files
+.vscode/
+.DS_Store
+Thumbs.db
+
+# ML
+credit_score/
+data/
+loan_approval/
+generator/
+auto_loan_models.ipynb

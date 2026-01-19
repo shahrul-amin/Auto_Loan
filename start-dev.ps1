@@ -1,0 +1,2 @@
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd backend; conda activate auto-loan; python app.py"
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd frontend; flutter run"
