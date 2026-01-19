@@ -97,6 +97,7 @@ ENV/
 .vscode/
 .DS_Store
 Thumbs.db
+.github/
 
 # ML
 credit_score/
