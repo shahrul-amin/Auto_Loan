@@ -1,5 +1,7 @@
 # AutoLoan - Automated Loan Application System
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/0f4b252383654bc58c6cb96707c3a9c9)](https://app.codacy.com/gh/shahrul-amin/Auto_Loan?utm_source=github.com&utm_medium=referral&utm_content=shahrul-amin/Auto_Loan&utm_campaign=Badge_Grade)
+
 AutoLoan is an intelligent mobile application build with Flutter framework and Flask backend API that automates loan application processing. It uses Machine Learning models for credit scoring and loan approval prediction, with Explainable AI (XAI) providing counterfactual explanations for rejected applications.
 
 ## Features
