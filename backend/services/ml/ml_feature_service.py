@@ -17,6 +17,7 @@ class MLFeatureService:
         employmentInfo = self._firebaseService.db.collection('employment_info').document(icNumber).get()
         user = self._firebaseService.db.collection('users').document(icNumber).get()
         ccrisProfile = self._firebaseService.db.collection('ccris_credit_profiles').document(icNumber).get()
+        creditScoreDoc = self._firebaseService.db.collection('credit_score').document(icNumber).get()
         
         creditCards = list(self._firebaseService.db.collection('credit_cards')
                           .where('icNumber', '==', icNumber)
@@ -40,6 +41,7 @@ class MLFeatureService:
         employment = employmentInfo.to_dict() if employmentInfo.exists else {}
         userData = user.to_dict() if user.exists else {}
         ccris = ccrisProfile.to_dict() if ccrisProfile.exists else {}
+        creditScore = creditScoreDoc.to_dict() if creditScoreDoc.exists else {}
         loanApp = loanApplication.to_dict() if loanApplication and loanApplication.exists else {}
         
         features = {}
@@ -54,7 +56,7 @@ class MLFeatureService:
         features['WorkExperience'] = self._calculateWorkExperience(employment.get('employmentStartDate'))
         features['EPFMonthlyContribution'] = employment.get('epfMonthlyContribution', MLConstants.DEFAULT_EPF_CONTRIBUTION)
         features['EPFBalance'] = employment.get('epfBalance', MLConstants.DEFAULT_EPF_BALANCE)
-        features['CreditScore'] = ccris.get('creditScore', 0)
+        features['CreditScore'] = creditScore.get('currentCreditScore', 0)
         features['CCRISStatus'] = self._deriveCCRISStatus(
             ccris.get('numberOfDefaultPayments', 0),
             self._calculateTotalMissedPayments(loanHistory)
@@ -84,7 +86,7 @@ class MLFeatureService:
         # Estimate interest rate if not provided
         interestRate = loanApp.get('interestRate')
         if not interestRate:
-            interestRate = self._estimateInterestRate(loanApp.get('loanType', ''), ccris.get('creditScore', 0))
+            interestRate = self._estimateInterestRate(loanApp.get('loanType', ''), creditScore.get('currentCreditScore', 0))
         
         features['InterestRate'] = interestRate
         features['MonthlyLoanPayment'] = self._calculateMonthlyLoanPayment(
@@ -105,7 +107,7 @@ class MLFeatureService:
             loanApp.get('requestedAmount', 0.0),
             monthlyIncome
         )
-        features['CreditScoreCategory'] = self._categorizeCreditScore(ccris.get('creditScore', 0))
+        features['CreditScoreCategory'] = self._categorizeCreditScore(creditScore.get('currentCreditScore', 0))
         features['LoanApproved'] = 1 if loanApp.get('status') == MLConstants.LOAN_STATUS_APPROVED else 0
         
         return features

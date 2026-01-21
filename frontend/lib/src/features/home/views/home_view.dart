@@ -544,7 +544,7 @@ class HomeView extends ConsumerWidget {
             Expanded(
               child: _buildMetricCard(
                 context,
-                'Commitments',
+                'Commitment',
                 'RM ${NumberFormat('#,##0').format(metrics.totalExistingCommitments)}',
                 () => _showCommitmentsModal(context, metrics),
               ),

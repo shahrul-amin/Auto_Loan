@@ -53,4 +53,9 @@ app.register_blueprint(loan_approval_routes.bp)
 if __name__ == '__main__':
     print(f"Starting Flask server on port {Config.PORT}")
     print(f"Environment: {Config.FLASK_ENV}")
-    app.run(host='0.0.0.0', port=Config.PORT, debug=Config.DEBUG)
+    host = '0.0.0.0' if Config.FLASK_ENV == 'development' else '127.0.0.1'
+    
+    if host == '0.0.0.0':
+        print("WARNING: Server is accessible from network (development mode)")
+    
+    app.run(host=host, port=Config.PORT, debug=Config.DEBUG)
