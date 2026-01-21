@@ -76,6 +76,7 @@ GoogleService-Info.plist
 config.py
 local_settings.py
 secrets.json
+**/api_config.dart
 
 # Python cache
 __pycache__/
