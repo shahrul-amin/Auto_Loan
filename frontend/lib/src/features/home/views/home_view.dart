@@ -183,7 +183,7 @@ class HomeView extends ConsumerWidget {
         AppSpacing.horizontalSpaceMD,
         Expanded(
           child: _buildStatCard(
-            'Success Rate',
+            'Success %',
             '${successRate.toStringAsFixed(0)}%',
             Icons.trending_up,
           ),

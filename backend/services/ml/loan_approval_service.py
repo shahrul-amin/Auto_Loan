@@ -323,134 +323,70 @@ class LoanApprovalPredictionService:
             if cfExamples is None:
                 return "Unable to generate specific recommendations. Please contact our loan officer for personalized advice."
             
-            # Format to human-readable text (inverse-transform scaled values)
             explanationText = self._format_counterfactual_text(queryInstance, cfExamples, processedQuery)
+            
+            if not explanationText:
+                return None
             
             logger.info(f"Generated rejection explanation for {icNumber}")
             return explanationText
             
         except Exception as e:
             logger.error(f"Failed to generate rejection explanation for {icNumber}: {str(e)}", exc_info=True)
-            return "Unable to generate specific recommendations due to technical issues. Please contact our loan officer."
+            return None
     
     def _format_counterfactual_text(self, originalInstance: pd.DataFrame, cfExamples, processedQuery: pd.DataFrame) -> str:
-        try:
-            cfDf = cfExamples.cf_examples_list[0].final_cfs_df
+        cfDf = cfExamples.cf_examples_list[0].final_cfs_df
+        
+        if cfDf.empty:
+            return None
+        
+        cfRow = cfDf.iloc[0]
+        origProcessed = processedQuery.iloc[0]
+        origRaw = originalInstance.iloc[0]
+        
+        text = "To improve your chances of loan approval:\n\n"
+        
+        dsrOrig = origProcessed.get('DSR')
+        dsrCf = cfRow.get('DSR') if 'DSR' in cfRow.index else None
+        
+        creditScoreOrig = origProcessed.get('CreditScore')
+        creditScoreCf = cfRow.get('CreditScore') if 'CreditScore' in cfRow.index else None
+        
+        if dsrCf is not None and dsrOrig is not None and dsrCf < dsrOrig:
+            target_dsr = max(dsrCf, 0.55)
             
-            if cfDf.empty:
-                return "Unable to generate specific recommendations. Please contact our loan officer."
+            monthly_income = origRaw.get('MonthlyIncome', 0)
+            existing_commitments = origRaw.get('ExistingLoanCommitments', 0)
+            current_loan_payment = origRaw.get('MonthlyLoanPayment', 0)
+            current_loan_amount = origRaw.get('LoanAmount', 0)
             
-            cfRow = cfDf.iloc[0]
-            origProcessed = processedQuery.iloc[0]
-            origRaw = originalInstance.iloc[0]
+            total_monthly_debt = existing_commitments + current_loan_payment
+            target_income = total_monthly_debt / target_dsr if target_dsr > 0 else 0
             
-            text = "To improve your chances of loan approval, consider the following changes:\n\n"
+            target_total_payment = target_dsr * monthly_income
+            target_loan_payment = target_total_payment - existing_commitments
             
-            changeCount = 0
-            priorityFeatures = [
-                'DSR', 'LoanAmount', 'CreditScore', 'MonthlyIncome', 'ExistingLoanCommitments', 
-                'SavingsBalance', 'EPFBalance', 'GuarantorAvailable'
-            ]
+            if target_loan_payment > 0 and current_loan_payment > 0:
+                reduction_ratio = target_loan_payment / current_loan_payment
+                suggested_loan_amount = current_loan_amount * reduction_ratio
+                
+                text += f"Debt Service Ratio\n"
+                text += f"Current: {dsrOrig:.1%}\n"
+                text += f"Target: {target_dsr:.1%}\n\n"
+                text += f"Option A: Reduce loan amount to RM {suggested_loan_amount:,.0f}\n"
+                text += f"Option B: Increase monthly income to RM {target_income:,.0f}\n\n"
+        
+        if creditScoreCf is not None and creditScoreOrig is not None and creditScoreCf > creditScoreOrig:
+            improvement = creditScoreCf - creditScoreOrig
             
-            for feature in priorityFeatures:
-                if feature not in cfRow.index or feature not in origProcessed.index:
-                    continue
-                
-                origVal = origProcessed[feature]
-                cfVal = cfRow[feature]
-                
-                if isinstance(origVal, (int, float)) and isinstance(cfVal, (int, float)):
-                    if abs(cfVal - origVal) < 0.01:
-                        continue
-                elif origVal == cfVal:
-                    continue
-                
-                changeCount += 1
-                featureName = feature.replace('_', ' ')
-                
-                if feature == 'DSR':
-                    if cfVal > origVal:
-                        changeCount -= 1
-                        continue
-                    current_dsr = origVal
-                    target_dsr = max(cfVal, 0.55)
-                    if target_dsr >= current_dsr:
-                        changeCount -= 1
-                        continue
-                    
-                    monthly_income = origRaw.get('MonthlyIncome', 0)
-                    existing_commitments = origRaw.get('ExistingLoanCommitments', 0)
-                    current_loan_payment = origRaw.get('MonthlyLoanPayment', 0)
-                    current_loan_amount = origRaw.get('LoanAmount', 0)
-                    
-                    total_monthly_debt = existing_commitments + current_loan_payment
-                    target_income = total_monthly_debt / target_dsr if target_dsr > 0 else 0
-                    
-                    target_total_payment = target_dsr * monthly_income
-                    target_loan_payment = target_total_payment - existing_commitments
-                    
-                    text += f"{changeCount}. Debt Service Ratio:\n"
-                    text += f"   Current: {current_dsr:.1%}\n"
-                    text += f"   Recommended: {target_dsr:.1%}\n"
-                    
-                    if target_loan_payment > 0 and current_loan_payment > 0:
-                        reduction_ratio = target_loan_payment / current_loan_payment
-                        suggested_loan_amount = current_loan_amount * reduction_ratio
-                        text += f"   Option A: Reduce loan to RM {suggested_loan_amount:,.0f}\n"
-                        text += f"   Option B: Increase income to RM {target_income:,.0f}\n\n"
-                    else:
-                        text += f"   Action: Increase income to RM {target_income:,.0f} or reduce existing debts\n\n"
-                
-                elif feature in ['MonthlyIncome', 'LoanAmount', 'SavingsBalance', 'ExistingLoanCommitments']:
-                    if feature in ['MonthlyIncome', 'SavingsBalance'] and cfVal < origVal:
-                        changeCount -= 1
-                        continue
-                    if feature in ['ExistingLoanCommitments', 'LoanAmount'] and cfVal > origVal:
-                        changeCount -= 1
-                        continue
-                    
-                    text += f"{changeCount}. {featureName}:\n"
-                    text += f"   Current: RM {origVal:,.0f}\n"
-                    text += f"   Recommended: RM {cfVal:,.0f}\n"
-                    diff = cfVal - origVal
-                    text += f"   Change needed: RM {abs(diff):,.0f} "
-                    text += f"({'increase' if diff > 0 else 'decrease'})\n\n"
-                
-                elif feature == 'CreditScore':
-                    if cfVal < origVal:
-                        changeCount -= 1
-                        continue
-                    
-                    text += f"{changeCount}. Credit Score:\n"
-                    text += f"   Current: {origVal:.0f}\n"
-                    text += f"   Recommended: {cfVal:.0f}\n"
-                    text += f"   Improve by {(cfVal - origVal):.0f} points through timely payments\n\n"
-                
-                elif feature == 'GuarantorAvailable':
-                    if cfVal == 1 and origVal == 0:
-                        text += f"{changeCount}. Guarantor:\n"
-                        text += f"   Adding a guarantor may significantly improve approval chances\n\n"
-                    else:
-                        changeCount -= 1
-                
-                else:
-                    text += f"{changeCount}. {featureName}:\n"
-                    text += f"   Current: {origVal}\n"
-                    text += f"   Recommended: {cfVal}\n\n"
-                
-                if changeCount >= 5:
-                    break
-            
-            if changeCount == 0:
-                text = "Your application is borderline. Please contact our loan officer for personalized advice on improving your application.\n"
-            
-            text += "\nNote: These are suggestions based on statistical analysis. Actual approval depends on comprehensive assessment by our loan officers."
-            
-            return text
-            
-        except Exception as e:
-            logger.error(f"Error formatting counterfactual text: {str(e)}", exc_info=True)
-            return "Unable to generate specific recommendations. Please contact our loan officer."
+            if 20 <= improvement <= 100:
+                text += f"Credit Score\n"
+                text += f"Current: {creditScoreOrig:.0f}\n"
+                text += f"Target: {creditScoreCf:.0f}\n"
+                text += f"Required improvement: {improvement:.0f} points\n\n"
+        
+        return text
     
     def _getAssumedInterestRate(self, loanType: str) -> float:
         """Get nterest rate for loan type (for prediction purposes only)"""

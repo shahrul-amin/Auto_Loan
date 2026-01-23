@@ -132,12 +132,9 @@ class CreditView extends ConsumerWidget {
                           ],
                         ),
                         AppSpacing.verticalSpaceMD,
-                        SizedBox(
-                          height: 200,
-                          child: StackableCreditCards(
-                            cards: creditCards,
-                            onCardTap: (index) {},
-                          ),
+                        StackableCreditCards(
+                          cards: creditCards,
+                          onCardTap: (index) {},
                         ),
                       ],
                     ),
