@@ -14,6 +14,8 @@
 
 AutoLoan is an intelligent mobile application build with Flutter framework and Flask backend API that automates loan application processing. It uses Machine Learning models for credit scoring and loan approval prediction, with Explainable AI (XAI) providing counterfactual explanations for rejected applications.
 
+https://github.com/user-attachments/assets/00975e3a-a993-497e-91e3-f4933fcf7848
+
 ## Features
 
 - **Multi-Factor Authentication (MFA)** - Username, password, and OTP verification
